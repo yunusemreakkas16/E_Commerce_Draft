@@ -1,0 +1,30 @@
+# Visual Studio ve .NET ile ilgili gereksiz dosyalar
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Derleme ve çıktı dosyaları
+bin/
+obj/
+debug/
+release/
+
+# Uygulama ayarları ve hassas bilgiler
+appsettings.json
+appsettings.*.json
+secrets.json
+
+# Paketler ve bağımlılıklar
+packages/
+node_modules/
+
+# Log dosyaları
+*.log
+logs/
+
+# IDE ve geliştirme araçları ile ilgili dosyalar
+.vscode/
+.idea/
+*.DS_Store
