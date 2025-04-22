@@ -11,7 +11,7 @@ namespace E_Commerce_Draft.API.Repositories
         {
             _connection = new SqlConnection(configuration.GetConnectionString("E_CommerceConnectionString"));
         }
-        public async Task<Product?> AddProductAsync(Product product)
+        public async Task<(int MessageId, string MessageDescription, Product?)> CreateProductAsync(Product product)
         {
             try
             {
@@ -22,17 +22,26 @@ namespace E_Commerce_Draft.API.Repositories
                     command.Parameters.Add(new SqlParameter("@Price", product.Price));
                     command.Parameters.Add(new SqlParameter("@CategoryId", product.CategoryId));
 
+                    //Output Parameters
+                    var messageIdParam = new SqlParameter("@MessageId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                    var messageDescriptionParam = new SqlParameter("@MessageDescription", SqlDbType.NVarChar, 255) { Direction = ParameterDirection.Output };
+
+                    command.Parameters.Add(messageIdParam);
+                    command.Parameters.Add(messageDescriptionParam);
+
+                    Product? createdProduct = null;
+
                     await _connection.OpenAsync();
-                    using (SqlDataReader reader = await command.ExecuteReaderAsync()) 
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (await reader.ReadAsync())
                         {
-                            return new Product
+                            createdProduct = new Product
                             {
                                 ID = (int)reader["ID"],
                                 Name = (string)reader["Name"],
                                 Price = (decimal)reader["Price"],
-                                CategoryId =(int)reader["CategoryId"],
+                                CategoryId = (int)reader["CategoryId"],
                                 isDeleted = (bool)reader["isDeleted"],
                                 Categories = new Category
                                 {
@@ -44,38 +53,50 @@ namespace E_Commerce_Draft.API.Repositories
                             };
                         }
                     }
+                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, createdProduct);
+
                 }
+            }
+            catch (SqlException sqlEx)
+            {
+                return (-99, $"Database error: {sqlEx.Message}", null);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Something has happened. " + ex.Message);
-                return null;
+                return (-100, $"Unexpected error: {ex.Message}", null);
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
-                    _connection.Close();
-                await _connection.CloseAsync();
-
+                    await _connection.CloseAsync();
             }
 
-            return null;
         }
 
-        public async Task<List<Product>> GetAllProductsAsync()
-        {
-            var products = new List<Product>();
+        public async Task<(int MessageId, string MessageDescription, List<Product>)> GetAllProductsAsync()
 
+        {
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_GetAllProducts", _connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
+
+                    //Output Parameters
+                    var messageIdParam = new SqlParameter("@MessageId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                    var messageDescriptionParam = new SqlParameter("@MessageDescription", SqlDbType.NVarChar, 255) { Direction = ParameterDirection.Output };
+
+                    command.Parameters.Add(messageIdParam);
+                    command.Parameters.Add(messageDescriptionParam);
+
+                    List<Product> products = new List<Product>();
+
+
                     await _connection.OpenAsync();
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        while(await reader.ReadAsync())
+                        while (await reader.ReadAsync())
                         {
                             products.Add(new Product
                             {
@@ -93,35 +114,52 @@ namespace E_Commerce_Draft.API.Repositories
                             });
                         }
                     }
+                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, products);
                 }
+            }
+            catch (SqlException sqlEx)
+            {
+                return (-99, $"Database error: {sqlEx.Message}", new List<Product>());
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Something has happened. " + ex.Message);
+                return (-100, $"Unexpected error: {ex.Message}", new List<Product>());
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
-                    _connection.Close();
-                await _connection.CloseAsync();
+                    await _connection.CloseAsync();
             }
-            return products;
+
         }
 
-        public async Task<Product?> GetProductByIdAsync(int id)
+        public async Task<(int MessageId, string MessageDescription, Product?)> GetProductByIdAsync(int productId)
+
         {
-            try 
+            try
             {
                 using (SqlCommand command = new SqlCommand("usp_GetProductById", _connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.Add(new SqlParameter("@ProductId", id));
+                    command.Parameters.Add(new SqlParameter("@ProductId", productId));
+
+                    // Output Parameters
+                    var messageIdParam = new SqlParameter("@MessageId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                    var messageDescriptionParam = new SqlParameter("@MessageDescription", SqlDbType.NVarChar, 255) { Direction = ParameterDirection.Output };
+
+                    command.Parameters.Add(messageIdParam);
+                    command.Parameters.Add(messageDescriptionParam);
+
                     await _connection.OpenAsync();
+
+                    Product? product = null;
+
+
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        if(await reader.ReadAsync())
+                        if (await reader.ReadAsync())
                         {
-                            return new Product
+                            product = new Product
                             {
                                 ID = (int)reader["ProductID"],
                                 Name = (string)reader["ProductName"],
@@ -137,27 +175,29 @@ namespace E_Commerce_Draft.API.Repositories
                             };
                         }
                     }
+                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, product);
                 }
 
             }
+            catch (SqlException sqlEx)
+            {
+                return (-99, $"Database error: {sqlEx.Message}", null);
+            }
             catch (Exception ex)
             {
-                Console.WriteLine("Something has happened. " + ex.Message);
-                return null;
+                return (-100, $"Unexpected error: {ex.Message}", null);
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
-                    _connection.Close();
-                await _connection.CloseAsync();
+                    await _connection.CloseAsync();
             }
-            return null;
+
         }
 
-        public async Task<Product?> UpdateProductAsync(Product product)
+        public async Task<(int MessageId, string MessageDescription, Product?)> UpdateProductAsync(Product product)
         {
             try
-            
             {
                 using (SqlCommand command = new SqlCommand("[usp_UpdateProduct]", _connection))
                 {
@@ -167,12 +207,22 @@ namespace E_Commerce_Draft.API.Repositories
                     command.Parameters.Add(new SqlParameter("@Price", product.Price));
                     command.Parameters.Add(new SqlParameter("@CategoryId", product.CategoryId));
                     command.Parameters.Add(new SqlParameter("@isDeleted", product.isDeleted));
+
+                    //Output Parameters
+                    var messageIdParam = new SqlParameter("@MessageId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                    var messageDescriptionParam = new SqlParameter("@MessageDescription", SqlDbType.NVarChar, 255) { Direction = ParameterDirection.Output };
+
+                    command.Parameters.Add(messageIdParam);
+                    command.Parameters.Add(messageDescriptionParam);
+
+                    Product? updatedProduct = null;
+
                     await _connection.OpenAsync();
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (await reader.ReadAsync())
                         {
-                            return new Product
+                            updatedProduct = new Product
                             {
                                 ID = (int)reader["ProductID"],
                                 Name = (string)reader["ProductName"],
@@ -188,21 +238,24 @@ namespace E_Commerce_Draft.API.Repositories
                             };
                         }
                     }
+                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, updatedProduct);
 
                 }
             }
+            catch (SqlException sqlEx)
+            {
+                return (-99, $"Database error: {sqlEx.Message}", null);
+            }
             catch (Exception ex)
             {
-                Console.WriteLine("Something has happened. " + ex.Message);
-                return null;
+                return (-100, $"Unexpected error: {ex.Message}", null);
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
-                    _connection.Close();
-                await _connection.CloseAsync();
+                    await _connection.CloseAsync();
             }
-            return null;
+
         }
     }
 }

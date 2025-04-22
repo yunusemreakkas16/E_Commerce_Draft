@@ -4,9 +4,9 @@ namespace E_Commerce_Draft.API.Repositories
 {
     public interface IUserRepository
     {
-        Task<List<User>> GetAllUsersAsync();
-        Task<User?> GetUserByIdAsync(int id);
-        Task<User> AddUserAsync(User user);
-        Task<User?> UpdateUserAsync(User user);
+        Task<(int MessageId, string MessageDescription, List<User>)> GetAllUsersAsync();
+        Task<(int MessageId, string MessageDescription, User?)> GetUserByIdAsync(int id);
+        Task<(int MessageId, string MessageDescription, User?)> CreateUserAsync(User user);
+        Task<(int MessageId, string MessageDescription, User?)> UpdateUserAsync(User user);
     }
 }

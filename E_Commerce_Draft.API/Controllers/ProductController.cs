@@ -18,49 +18,78 @@ namespace E_Commerce_Draft.API.Controllers
         }
         [HttpPost]
         [Route("AddProduct")]
-        public async Task<ActionResult<Product>> AddProduct([FromBody] Product product)
+        public async Task<ActionResult<object>> CreateProductAsync([FromBody] Product product)
         {
             if (product == null)
-                return BadRequest("Product data is required.");
+                return BadRequest(new { MessageId = -2, MessageDescription = "Product data is required." });
 
-            var addedProduct = await productRepository.AddProductAsync(product);
+            var (messageId, messageDescription, newProduct) = await productRepository.CreateProductAsync(product);
 
-            if (addedProduct == null)
-                return StatusCode(500, "An error occurred while adding the product.");
+            if (messageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
 
-            return CreatedAtAction(nameof(AddProduct), new { id = addedProduct.ID }, addedProduct);
+            if (messageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+
+            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Product = newProduct });
         }
 
         [HttpPost]
         [Route("ProductList")]
-        public async Task<ActionResult<List<Product>>> GetAllProducts()
+        public async Task<ActionResult<object>> GetAllProducts()
         {
-            var products = await productRepository.GetAllProductsAsync();
-            if (products == null || products.Count == 0)
-                return NotFound("No products found.");
-            return Ok(products);
+            var (messageId, messageDescription, products) = await productRepository.GetAllProductsAsync();
+
+            if (messageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+
+            if (messageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+
+            if (messageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+
+            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Products = products });
         }
 
         [HttpPost]
         [Route("ProductDetail")]
-        public async Task<ActionResult<Product>> GetProductById([FromBody] ProductDetailParamModel productDetailParamModel)
+        public async Task<ActionResult<object>> GetProductById([FromBody] ProductDetailParamModel productDetailParamModel)
         {
-            var product = await productRepository.GetProductByIdAsync(productDetailParamModel.ID);
-            if (product == null)
-                return NotFound("Product not found.");
-            return Ok(product);
+            var (messageId, messageDescription, product) = await productRepository.GetProductByIdAsync(productDetailParamModel.ID);
+
+            if (messageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+
+            if (messageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+
+            if (messageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+
+            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Product = product });
         }
         [HttpPost]
         [Route("ProductUpdate")]
-        public async Task<ActionResult<Product>> UpdateProduct([FromBody] Product product)
+        public async Task<ActionResult<object>> UpdateProduct([FromBody] Product product)
         {
-            if (product == null)
-                return BadRequest("Product data is required.");
-            var updatedProduct = await productRepository.UpdateProductAsync(product);
-            if (updatedProduct == null)
-                return StatusCode(500, "An error occurred while updating the product.");
-            return Ok(updatedProduct);
+            if (product == null || product.ID <= 0)
+                return BadRequest(new { MessageId = -2, MessageDescription = "Valid product data is required." });
+
+            var (messageId, messageDescription, updatedProduct) = await productRepository.UpdateProductAsync(product);
+
+            if (messageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+
+            if (messageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+
+            if (messageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+
+            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Product = updatedProduct });
         }
+
 
 
     }

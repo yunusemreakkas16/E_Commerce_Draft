@@ -18,50 +18,79 @@ namespace E_Commerce_Draft.API.Controllers
 
         [HttpPost]
         [Route("CategoryDetail")]
-        public async Task<ActionResult<Category>> GetById([FromBody] CategoryDetailParamModel categoryDetailParamModel)
+        public async Task<ActionResult<object>> GetCategoryById([FromBody]CategoryDetailParamModel categoryDetailParamModel)
         {
-            var category = await categoryRepository.GetCategoryByIdAsync(categoryDetailParamModel);
+            var (messageId, messageDescription, category) = await categoryRepository.GetCategoryByIdAsync(categoryDetailParamModel.ID);
 
-            if (category == null)
-                return NotFound();
+            if (messageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
 
-            return Ok(category);
+            if (messageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+
+            if (messageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+
+            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Category = category });
         }
+
 
         [HttpPost]
         [Route("CategoryList")]
-        public async Task<ActionResult<Category>> CategoryList()
+        public async Task<ActionResult<object>> CategoryList()
         {
-            var categories = await categoryRepository.GetAllCategoriesAsync();
-            if (categories == null || categories.Count == 0)
-                return NotFound();
-            return Ok(categories);
+            var (messageId, messageDescription, categories) = await categoryRepository.GetAllCategoriesAsync();
+
+            if (messageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+
+            if (messageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+
+            if (messageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+
+            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Categories = categories });
         }
 
+
         [HttpPost]
-        [Route("CategoryCreate")]
-        public async Task<IActionResult> Create([FromBody] Category category)
+        [Route("CreateCategory")]
+        public async Task<ActionResult<object>> CreateCategory([FromBody] Category category)
         {
-            if (string.IsNullOrWhiteSpace(category.Name))
-                return BadRequest("Category name is required.");
+            if (category == null || string.IsNullOrWhiteSpace(category.Name))
+                return BadRequest(new { MessageId = -2, MessageDescription = "Valid category data is required." });
 
-            var newCategory = await categoryRepository.CreateCategoryAsync(category);
+            var (messageId, messageDescription, newCategory) = await categoryRepository.CreateCategoryAsync(category);
 
-            if (newCategory == null)
-                return StatusCode(500, "Error creating category.");
+            if (messageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
 
-            return Ok(newCategory);
+            if (messageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+
+            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Category = newCategory });
         }
 
         [HttpPost]
         [Route("CategoryUpdate")]
-        public async Task<IActionResult> Update([FromBody] Category category)
+        public async Task<ActionResult<object>> UpdateCategory([FromBody] Category category)
         {
-            var updatedCategory = await categoryRepository.UpdateCategoryAsync(category);
-            if (updatedCategory == null)
-                return StatusCode(500, "Error updating category.");
-            return Ok(updatedCategory);
-        }
+            if (category == null || category.ID <= 0)
+                return BadRequest(new { MessageId = -2, MessageDescription = "Valid category data is required." });
 
+            var (messageId, messageDescription, updatedCategory) = await categoryRepository.UpdateCategoryAsync(category);
+
+            if (messageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+
+            if (messageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+
+            if (messageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+
+            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Category = updatedCategory });
+        }
     }
 }

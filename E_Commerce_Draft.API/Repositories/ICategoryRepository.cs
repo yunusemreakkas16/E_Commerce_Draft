@@ -4,9 +4,9 @@ namespace E_Commerce_Draft.API.Repositories
 {
     public interface ICategoryRepository
     {
-        Task<List<Category>> GetAllCategoriesAsync();
-        Task<Category?> GetCategoryByIdAsync(CategoryDetailParamModel categoryDetailParamModel);
-        Task<Category?> CreateCategoryAsync(Category category);
-        Task<Category?> UpdateCategoryAsync(Category category);
+        Task<(int MessageId, string MessageDescription, List<Category>)> GetAllCategoriesAsync();
+        Task<(int MessageId, string MessageDescription, Category?)> GetCategoryByIdAsync(int categoryId);
+        Task<(int MessageId, string MessageDescription, Category?)> CreateCategoryAsync(Category category);
+        Task<(int MessageId, string MessageDescription, Category?)> UpdateCategoryAsync(Category category);
     }
 }
