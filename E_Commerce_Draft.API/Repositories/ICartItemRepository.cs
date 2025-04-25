@@ -4,10 +4,10 @@ namespace E_Commerce_Draft.API.Repositories
 {
     public interface ICartItemRepository
     {
-        Task<List<CartItem>> GetAllCartItemsAsync();
-        Task<List<CartItem?>> GetCartItemsByUserIdAsync(int userId); 
-        Task<CartItem> CreateCartItemAsync(CartItem cartItem);  
-        Task<CartItem?> UpdateCartItemAsync(CartItem cartItem); 
-        Task<bool> DeleteCartItemAsync(int userId, int productId);  
+        Task<(int MessageId, string MessageDescription, List<CartItem>?)> GetAllCartItemsAsync();
+        Task<(int MessageId, string MessageDescription, List<CartItem>?)> GetCartItemsByUserIdAsync(int userId); 
+        Task<(int MessageId, string MessageDescription, CartItem?)> CreateCartItemAsync(CartItem cartItem);  
+        Task<(int MessageId, string MessageDescription, CartItem?)> UpdateCartItemAsync(CartItem cartItem); 
+        Task<(int MessageId, string MessageDescription)> DeleteCartItemAsync(int cartItemId);  
     }
 }

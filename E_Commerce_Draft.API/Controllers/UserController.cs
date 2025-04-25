@@ -18,7 +18,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
-        [Route("CreateUser")]
+        [Route("AddUser")]
         public async Task<ActionResult<object>> CreateUser([FromBody] User user)
         {
             if (user == null)
@@ -70,7 +70,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
-        [Route("UserUpdate")]
+        [Route("UpdateUser")]
         public async Task<ActionResult<object>> UpdateUser([FromBody] User user)
         {
             if (user == null)
