@@ -1,6 +1,7 @@
 ﻿using E_Commerce_Draft.API.Models.Domain;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using static E_Commerce_Draft.API.Models.Domain.Product;
 
 namespace E_Commerce_Draft.API.Repositories
 {
@@ -11,8 +12,34 @@ namespace E_Commerce_Draft.API.Repositories
         {
             _connection = new SqlConnection(configuration.GetConnectionString("E_CommerceConnectionString"));
         }
-        public async Task<(int MessageId, string MessageDescription, Product?)> CreateProductAsync(Product product)
+
+        private Product MapProduct(SqlDataReader reader)
         {
+            return new Product
+            {
+                ID = (int)reader["ProductId"],
+                Name = (string)reader["ProductName"],
+                Price = (decimal)reader["ProductPrice"],
+                CategoryId = (int)reader["ProductCategoryId"],
+                isDeleted = (bool)reader["ProductDeleted"],
+                Categories = new Category
+                {
+                    ID = (int)reader["CategoryId"],
+                    Name = (string)reader["CategoryName"],
+                    isDeleted = (bool)reader["CategoryDeleted"]
+                }
+            };
+        }
+
+        public async Task<ProductResponseModel> CreateProductAsync(Product product)
+        {
+            var responseModel = new ProductResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Product = null
+            };
+
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_CreateProduct", _connection))
@@ -29,53 +56,52 @@ namespace E_Commerce_Draft.API.Repositories
                     command.Parameters.Add(messageIdParam);
                     command.Parameters.Add(messageDescriptionParam);
 
-                    Product? createdProduct = null;
-
                     await _connection.OpenAsync();
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (await reader.ReadAsync())
                         {
-                            createdProduct = new Product
-                            {
-                                ID = (int)reader["ID"],
-                                Name = (string)reader["Name"],
-                                Price = (decimal)reader["Price"],
-                                CategoryId = (int)reader["CategoryId"],
-                                isDeleted = (bool)reader["isDeleted"],
-                                Categories = new Category
-                                {
-                                    ID = (int)(reader["CategoryID"]),
-                                    Name = (string)reader["CategoryName"],
-                                    isDeleted = (bool)(reader["CategoryDeleted"])
-                                }
-
-                            };
+                            responseModel.Product = MapProduct(reader);
                         }
-                    }
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, createdProduct);
+                        else
+                        {
+                            responseModel.MessageId = -1;
+                            responseModel.MessageDescription = "No product data returned.";
+                        }
 
+                    }
+
+                    responseModel.MessageId = (int)messageIdParam.Value;
+                    responseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                responseModel.MessageId = -99;
+                responseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                responseModel.MessageId = -100;
+                responseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
-
+            return responseModel;
         }
 
-        public async Task<(int MessageId, string MessageDescription, List<Product>)> GetAllProductsAsync()
-
+        public async Task<GetAllProductsResponseModel> GetAllProductsAsync()
         {
+            var responseModel = new GetAllProductsResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Products = new List<Product>()
+            };
+
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_GetAllProducts", _connection))
@@ -89,53 +115,46 @@ namespace E_Commerce_Draft.API.Repositories
                     command.Parameters.Add(messageIdParam);
                     command.Parameters.Add(messageDescriptionParam);
 
-                    List<Product> products = new List<Product>();
-
-
                     await _connection.OpenAsync();
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
                         {
-                            products.Add(new Product
-                            {
-                                ID = (int)reader["ProductID"],
-                                Name = (string)reader["ProductName"],
-                                Price = (decimal)reader["Price"],
-                                CategoryId = (int)reader["CategoryId"],
-                                isDeleted = (bool)reader["isDeleted"],
-                                Categories = new Category
-                                {
-                                    ID = (int)(reader["CategoryID"]),
-                                    Name = (string)reader["CategoryName"],
-                                    isDeleted = (bool)(reader["CategoryDeleted"])
-                                }
-                            });
+                            responseModel.Products.Add(MapProduct(reader));
                         }
                     }
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, products);
+                    responseModel.MessageId = (int)messageIdParam.Value;
+                    responseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", new List<Product>());
+                responseModel.MessageId = -99;
+                responseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", new List<Product>());
+                responseModel.MessageId = -100;
+                responseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return responseModel;
 
         }
 
-        public async Task<(int MessageId, string MessageDescription, Product?)> GetProductByIdAsync(int productId)
-
+        public async Task<ProductResponseModel> GetProductByIdAsync(int productId)
         {
+            var responseModel = new ProductResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Product = null
+            };
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_GetProductById", _connection))
@@ -152,51 +171,44 @@ namespace E_Commerce_Draft.API.Repositories
 
                     await _connection.OpenAsync();
 
-                    Product? product = null;
-
-
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (await reader.ReadAsync())
                         {
-                            product = new Product
-                            {
-                                ID = (int)reader["ProductID"],
-                                Name = (string)reader["ProductName"],
-                                Price = (decimal)reader["Price"],
-                                CategoryId = (int)reader["CategoryId"],
-                                isDeleted = (bool)reader["isDeleted"],
-                                Categories = new Category
-                                {
-                                    ID = (int)(reader["CategoryID"]),
-                                    Name = (string)reader["CategoryName"],
-                                    isDeleted = (bool)(reader["CategoryDeleted"])
-                                }
-                            };
+                            responseModel.Product = MapProduct(reader);
                         }
                     }
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, product);
+                    responseModel.MessageId = (int)messageIdParam.Value;
+                    responseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
 
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                responseModel.MessageId = -99;
+                responseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                responseModel.MessageId = -100;
+                responseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
-
+            return responseModel;
         }
 
-        public async Task<(int MessageId, string MessageDescription, Product?)> UpdateProductAsync(Product product)
+        public async Task<ProductResponseModel> UpdateProductAsync(Product product)
         {
+            var responseModel = new ProductResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Product = null
+            };
             try
             {
                 using (SqlCommand command = new SqlCommand("[usp_UpdateProduct]", _connection))
@@ -222,39 +234,30 @@ namespace E_Commerce_Draft.API.Repositories
                     {
                         if (await reader.ReadAsync())
                         {
-                            updatedProduct = new Product
-                            {
-                                ID = (int)reader["ProductID"],
-                                Name = (string)reader["ProductName"],
-                                Price = (decimal)reader["Price"],
-                                CategoryId = (int)reader["CategoryId"],
-                                isDeleted = (bool)reader["isDeleted"],
-                                Categories = new Category
-                                {
-                                    ID = (int)(reader["CategoryID"]),
-                                    Name = (string)reader["CategoryName"],
-                                    isDeleted = (bool)(reader["CategoryDeleted"])
-                                }
-                            };
+                            responseModel.Product = MapProduct(reader);
                         }
                     }
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, updatedProduct);
+                    responseModel.MessageId = (int)messageIdParam.Value;
+                    responseModel.MessageDescription = (string)messageDescriptionParam.Value;
 
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                responseModel.MessageId = -99;
+                responseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                responseModel.MessageId = -100;
+                responseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return responseModel;
 
         }
     }

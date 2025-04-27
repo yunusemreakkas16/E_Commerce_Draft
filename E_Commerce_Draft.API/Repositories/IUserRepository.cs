@@ -1,12 +1,13 @@
 ﻿using E_Commerce_Draft.API.Models.Domain;
+using static E_Commerce_Draft.API.Models.Domain.User;
 
 namespace E_Commerce_Draft.API.Repositories
 {
     public interface IUserRepository
     {
-        Task<(int MessageId, string MessageDescription, List<User>)> GetAllUsersAsync();
-        Task<(int MessageId, string MessageDescription, User?)> GetUserByIdAsync(int id);
-        Task<(int MessageId, string MessageDescription, User?)> CreateUserAsync(User user);
-        Task<(int MessageId, string MessageDescription, User?)> UpdateUserAsync(User user);
+        Task<UserListResponseModel> GetAllUsersAsync();
+        Task<UserResponseModel> GetUserByIdAsync(int id);
+        Task<UserResponseModel> CreateUserAsync(User user);
+        Task<UserResponseModel> UpdateUserAsync(User user);
     }
 }

@@ -17,6 +17,13 @@
             public int ProductID { get; set; }
         }
 
+        public class UpdateOrderDetailRequestModel
+        {
+            public int OrderId { get; set; }
+            public int ProductId { get; set; }
+            public int NewQuantity { get; set; }
+        }
+
         public class OrderDetailResponseModel
         {
             public int MessageId { get; set; }

@@ -19,75 +19,75 @@ namespace E_Commerce_Draft.API.Controllers
 
         [HttpPost]
         [Route("AddUser")]
-        public async Task<ActionResult<object>> CreateUser([FromBody] User user)
+        public async Task<ActionResult<UserResponseModel>> CreateUser([FromBody] User user)
         {
             if (user == null)
                 return BadRequest(new { MessageId = -2, MessageDescription = "User data is required." });
 
-            var (messageId, messageDescription, newUser) = await userRepository.CreateUserAsync(user);
+            var userResponseModel = await userRepository.CreateUserAsync(user);
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (userResponseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = userResponseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (userResponseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = userResponseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, User = newUser });
+            return Ok(new { MessageId = userResponseModel.MessageId, MessageDescription = userResponseModel.MessageDescription, User = userResponseModel.User });
         }
 
         [HttpPost]
         [Route("UserDetail")]
-        public async Task<ActionResult<object>> GetUserById([FromBody] UserDetailParamModel detailParamModel)
+        public async Task<ActionResult<UserResponseModel>> GetUserById([FromBody] UserDetailParamModel detailParamModel)
         {
-            var (messageId, messageDescription, userDetail) = await userRepository.GetUserByIdAsync(detailParamModel.ID);
+            var userResponseModel = await userRepository.GetUserByIdAsync(detailParamModel.ID);
 
-            if (messageId == -1)
-                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+            if (userResponseModel.MessageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = userResponseModel.MessageDescription });
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (userResponseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = userResponseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (userResponseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = userResponseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, UserDetail = userDetail });
+            return Ok(new { MessageId = userResponseModel.MessageId, MessageDescription = userResponseModel.MessageDescription, UserDetail = userResponseModel.User });
         }
 
 
         [HttpPost]
         [Route("UserList")]
-        public async Task<ActionResult<object>> GetAllUsers()
+        public async Task<ActionResult<UserListResponseModel>> GetAllUsers()
         {
-            var (messageId, messageDescription, users) = await userRepository.GetAllUsersAsync();
+            var userListResponseModel = await userRepository.GetAllUsersAsync();
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (userListResponseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = userListResponseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (userListResponseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = userListResponseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Users = users });
+            return Ok(new { MessageId = userListResponseModel.MessageId, MessageDescription = userListResponseModel.MessageDescription, Users = userListResponseModel.Users });
         }
 
         [HttpPost]
         [Route("UpdateUser")]
-        public async Task<ActionResult<object>> UpdateUser([FromBody] User user)
+        public async Task<ActionResult<UserResponseModel>> UpdateUser([FromBody] User user)
         {
             if (user == null)
                 return BadRequest(new { MessageId = -2, MessageDescription = "User data is required." });
 
-            var (messageId, messageDescription, updatedUser) = await userRepository.UpdateUserAsync(user);
+            var userResponseModel = await userRepository.UpdateUserAsync(user);
 
-            if (messageId == -1)
-                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+            if (userResponseModel.MessageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = userResponseModel.MessageDescription });
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (userResponseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = userResponseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (userResponseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = userResponseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, UpdatedUser = updatedUser });
+            return Ok(new { MessageId = userResponseModel.MessageId, MessageDescription = userResponseModel.MessageDescription, UpdatedUser = userResponseModel.User });
         }
     }
 }

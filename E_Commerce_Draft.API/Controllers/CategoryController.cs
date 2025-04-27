@@ -18,79 +18,79 @@ namespace E_Commerce_Draft.API.Controllers
 
         [HttpPost]
         [Route("CategoryDetail")]
-        public async Task<ActionResult<object>> GetCategoryById([FromBody]CategoryDetailParamModel categoryDetailParamModel)
+        public async Task<ActionResult<object>> GetCategoryByIdAsync([FromBody]CategoryDetailParamModel categoryDetailParamModel)
         {
-            var (messageId, messageDescription, category) = await categoryRepository.GetCategoryByIdAsync(categoryDetailParamModel.ID);
+            var responseModel = await categoryRepository.GetCategoryByIdAsync(categoryDetailParamModel.ID);
 
-            if (messageId == -1)
-                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = responseModel.MessageDescription});
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Category = category });
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Category = responseModel.Category});
         }
 
 
         [HttpPost]
         [Route("CategoryList")]
-        public async Task<ActionResult<object>> CategoryList()
+        public async Task<ActionResult<object>> CategoryListAsync()
         {
-            var (messageId, messageDescription, categories) = await categoryRepository.GetAllCategoriesAsync();
+            var responseModel = await categoryRepository.GetAllCategoriesAsync();
 
-            if (messageId == -1)
-                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Categories = categories });
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Categories = responseModel.Categories });
         }
 
 
         [HttpPost]
         [Route("CreateCategory")]
-        public async Task<ActionResult<object>> CreateCategory([FromBody] Category category)
+        public async Task<ActionResult<object>> CreateCategoryAsync([FromBody] Category category)
         {
             if (category == null || string.IsNullOrWhiteSpace(category.Name))
                 return BadRequest(new { MessageId = -2, MessageDescription = "Valid category data is required." });
 
-            var (messageId, messageDescription, newCategory) = await categoryRepository.CreateCategoryAsync(category);
+            var responseModel = await categoryRepository.CreateCategoryAsync(category);
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription});
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription});
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Category = newCategory });
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Category = responseModel.Category});
         }
 
         [HttpPost]
         [Route("CategoryUpdate")]
-        public async Task<ActionResult<object>> UpdateCategory([FromBody] Category category)
+        public async Task<ActionResult<CategoryResponseModel>> UpdateCategoryAsync([FromBody] Category category)
         {
             if (category == null || category.ID <= 0)
                 return BadRequest(new { MessageId = -2, MessageDescription = "Valid category data is required." });
 
-            var (messageId, messageDescription, updatedCategory) = await categoryRepository.UpdateCategoryAsync(category);
+            var responseModel = await categoryRepository.UpdateCategoryAsync(category);
 
-            if (messageId == -1)
-                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = responseModel.MessageDescription});
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Category = updatedCategory });
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Category = responseModel.Category });
         }
     }
 }

@@ -5,10 +5,10 @@ namespace E_Commerce_Draft.API.Repositories
 {
     public interface IOrderRepository
     {
-        Task<(int MessageId, string MessageDescription, List<Order>?)> GetAllOrdersAsync();
-        Task<(int MessageId, string MessageDescription, Order?)> GetOrderByIdAsync(int id);
+        Task<OrderListResponseModel> GetAllOrdersAsync();
+        Task<OrderResponseModel> GetOrderByIdAsync(int id);
         Task<OrderResponseModel> CreateOrderAsync(Order order);
-        Task<(int MessageId, string MessageDescription, Order?)> UpdateOrderAsync(Order order);
+        Task<OrderResponseModel> UpdateOrderAsync(Order order);
     }
 
 }

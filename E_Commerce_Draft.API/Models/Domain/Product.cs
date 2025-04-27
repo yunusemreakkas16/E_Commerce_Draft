@@ -15,5 +15,20 @@
         {
             public int ID { get; set; }
         }
+
+        public class ProductResponseModel
+        {
+            public int MessageId { get; set; }
+            public string MessageDescription { get; set; } 
+            public Product? Product { get; set; }
+        }
+
+        public class GetAllProductsResponseModel
+        {
+            public int MessageId { get; set; } 
+            public string MessageDescription { get; set; } 
+            public List<Product>? Products { get; set; } 
+        }
+
     }
 }

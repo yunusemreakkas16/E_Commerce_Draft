@@ -269,7 +269,13 @@ namespace E_Commerce_Draft.API.Repositories
 
         public async Task<OrderDetailResponseModel> UpdateOrderDetailAsync(OrderDetail orderDetail)
         {
-            var responseModel = new OrderDetailResponseModel();
+            var responseModel = new OrderDetailResponseModel
+            {
+                OrderDetail = null,
+                MessageId = 0,
+                MessageDescription = string.Empty
+            };
+
 
             try
             {
@@ -288,19 +294,26 @@ namespace E_Commerce_Draft.API.Repositories
 
                     await _connection.OpenAsync();
 
-                    responseModel.MessageId = (int)messageIdParam.Value;
-                    responseModel.MessageDescription = (string)messageDescriptionParam.Value;
+                    OrderDetail? updatedOrderDetail = null;
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
+                        Console.WriteLine("SqlDataReader çalıştırıldı mı?");
+
                         if (await reader.ReadAsync())
                         {
-                            responseModel.OrderDetail = MapOrderDetail(reader);
+                            updatedOrderDetail = MapOrderDetail(reader);
+                            Console.WriteLine($"OrderDetailId: {reader["OrderDetailId"]}, Quantity: {reader["Quantity"]}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("SqlDataReader'da veri bulunamadı.");
                         }
                     }
 
                     responseModel.MessageId = (int)messageIdParam.Value;
                     responseModel.MessageDescription = (string)messageDescriptionParam.Value;
+                    responseModel.OrderDetail = updatedOrderDetail;
 
 
                 }

@@ -16,58 +16,59 @@ namespace E_Commerce_Draft.API.Controllers
         {
             this.productRepository = productRepository;
         }
+
         [HttpPost]
         [Route("AddProduct")]
-        public async Task<ActionResult<object>> CreateProductAsync([FromBody] Product product)
+        public async Task<ActionResult<ProductResponseModel>> CreateProductAsync([FromBody] Product product)
         {
             if (product == null)
                 return BadRequest(new { MessageId = -2, MessageDescription = "Product data is required." });
 
-            var (messageId, messageDescription, newProduct) = await productRepository.CreateProductAsync(product);
+            var responseModel = await productRepository.CreateProductAsync(product);
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Product = newProduct });
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Product = responseModel.Product });
         }
 
         [HttpPost]
         [Route("ProductList")]
         public async Task<ActionResult<object>> GetAllProducts()
         {
-            var (messageId, messageDescription, products) = await productRepository.GetAllProductsAsync();
+            var responseModel = await productRepository.GetAllProductsAsync();
 
-            if (messageId == -1)
-                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Products = products });
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Products = responseModel.Products });
         }
 
         [HttpPost]
         [Route("ProductDetail")]
         public async Task<ActionResult<object>> GetProductById([FromBody] ProductDetailParamModel productDetailParamModel)
         {
-            var (messageId, messageDescription, product) = await productRepository.GetProductByIdAsync(productDetailParamModel.ID);
+            var responseModel = await productRepository.GetProductByIdAsync(productDetailParamModel.ID);
 
-            if (messageId == -1)
-                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Product = product });
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Product = responseModel.Product });
         }
         [HttpPost]
         [Route("ProductUpdate")]
@@ -76,21 +77,18 @@ namespace E_Commerce_Draft.API.Controllers
             if (product == null || product.ID <= 0)
                 return BadRequest(new { MessageId = -2, MessageDescription = "Valid product data is required." });
 
-            var (messageId, messageDescription, updatedProduct) = await productRepository.UpdateProductAsync(product);
+            var responseModel = await productRepository.UpdateProductAsync(product);
 
-            if (messageId == -1)
-                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Product = updatedProduct });
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Product = responseModel.Product });
         }
-
-
-
     }
 }

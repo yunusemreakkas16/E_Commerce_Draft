@@ -1,13 +1,14 @@
 ﻿using E_Commerce_Draft.API.Models.Domain;
+using static E_Commerce_Draft.API.Models.Domain.CartItem;
 
 namespace E_Commerce_Draft.API.Repositories
 {
     public interface ICartItemRepository
     {
-        Task<(int MessageId, string MessageDescription, List<CartItem>?)> GetAllCartItemsAsync();
-        Task<(int MessageId, string MessageDescription, List<CartItem>?)> GetCartItemsByUserIdAsync(int userId); 
-        Task<(int MessageId, string MessageDescription, CartItem?)> CreateCartItemAsync(CartItem cartItem);  
-        Task<(int MessageId, string MessageDescription, CartItem?)> UpdateCartItemAsync(CartItem cartItem); 
-        Task<(int MessageId, string MessageDescription)> DeleteCartItemAsync(int cartItemId);  
+        Task<GetAllCartItemsResponseModel> GetAllCartItemsAsync();
+        Task<GetCartItemsByUserIdResponseModel> GetCartItemsByUserIdAsync(int userId); 
+        Task<CartItemResponseModel> CreateCartItemAsync(CartItem cartItem);  
+        Task<CartItemResponseModel> UpdateCartItemAsync(CartItem cartItem); 
+        Task<CartItemResponseModel> DeleteCartItemAsync(int cartItemId);  
     }
 }

@@ -18,58 +18,65 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
-        [Route("CreateCartItem")]
-        public async Task<ActionResult<object>> CreateCartItem([FromBody] CartItem cartItem)
+        [Route("AddCartItem")]
+        public async Task<ActionResult<object>> AddCartItem([FromBody] CartItem cartItem)
         {
-            if (cartItem == null || cartItem.UserId <= 0 || cartItem.ProductId <= 0 || cartItem.Quantity <= 0)
-                return BadRequest(new { MessageId = -2, MessageDescription = "Valid cart item data is required." });
-
-            var (messageId, messageDescription, newCartItem) = await cartItemRepository.CreateCartItemAsync(cartItem);
-
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
-
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
-
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, CartItem = newCartItem });
+            // Validation 
+            if (cartItem.UserId <= 0 || cartItem.ProductId <= 0 || cartItem.Quantity <= 0)
+            {
+                return BadRequest(new
+                {
+                    MessageId = -1,
+                    MessageDescription = "Valid UserId, ProductId and Quantity are required."
+                });
+            }
+            var response = await cartItemRepository.CreateCartItemAsync(cartItem);
+            if (response.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = response.MessageDescription });
+            if (response.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = response.MessageDescription });
+            return Ok(new { MessageId = response.MessageId, MessageDescription = response.MessageDescription, AddedCartItem = response.CartItem });
         }
 
         [HttpPost]
         [Route("CartItemList")]
-        public async Task<ActionResult<object>> GetAllCartItems()
+        public async Task<ActionResult<GetAllCartItemsResponseModel>> GetAllCartItems()
         {
 
-            var (messageId, messageDescription, cartItems) = await cartItemRepository.GetAllCartItemsAsync();
+            var getAllCartItemsResponseModel = await cartItemRepository.GetAllCartItemsAsync();
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (getAllCartItemsResponseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = getAllCartItemsResponseModel.MessageDescription});
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (getAllCartItemsResponseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = getAllCartItemsResponseModel.MessageDescription});
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, CartItems = cartItems });
+            return Ok(new { MessageId = getAllCartItemsResponseModel.MessageId, MessageDescription = getAllCartItemsResponseModel.MessageDescription, CartItems = getAllCartItemsResponseModel.CartItems});
         }
 
 
         [HttpPost]
         [Route("GetCartItemsByUserId")]
-        public async Task<ActionResult<object>> GetCartItemsByUserId([FromBody] CartItemDetailParamModel cartItemDetailParamModel)
+        public async Task<ActionResult<GetCartItemsByUserIdResponseModel>> GetCartItemsByUserId([FromBody] CartItemDetailParamModel cartItemDetailParamModel)
         {
-            var (messageId, messageDescription, cartItems) = await cartItemRepository.GetCartItemsByUserIdAsync(cartItemDetailParamModel.ID);
+            var cartItemsByUserIdResponseModel = await cartItemRepository.GetCartItemsByUserIdAsync(cartItemDetailParamModel.ID);
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (cartItemsByUserIdResponseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = cartItemsByUserIdResponseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (cartItemsByUserIdResponseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = cartItemsByUserIdResponseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, CartItems = cartItems });
+            if (cartItemsByUserIdResponseModel.MessageId == 0)
+                return NotFound(new { MessageId = 0, MessageDescription = cartItemsByUserIdResponseModel.MessageDescription, CartItems = cartItemsByUserIdResponseModel.CartItems });
+
+            return Ok(new { MessageId = cartItemsByUserIdResponseModel.MessageId, MessageDescription = cartItemsByUserIdResponseModel.MessageDescription, CartItems = cartItemsByUserIdResponseModel.CartItems });
         }
+
 
         [HttpPost]
         [Route("UpdateCartItem")]
-        public async Task<ActionResult<object>> UpdateCartItem([FromBody] CartItem cartItem)
+        public async Task<ActionResult<CartItemResponseModel>> UpdateCartItem([FromBody] CartItem cartItem)
         {
             // Validation 
             if (cartItem.ID <= 0 || cartItem.Quantity <= 0)
@@ -81,36 +88,31 @@ namespace E_Commerce_Draft.API.Controllers
                 });
             }
 
-            var (messageId, messageDescription, updatedCartItem) = await cartItemRepository.UpdateCartItemAsync(cartItem);
+            var cartItemResponseModel = await cartItemRepository.UpdateCartItemAsync(cartItem);
 
-            if (messageId == -99)
+            if (cartItemResponseModel.MessageId == -99)
             {
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+                return StatusCode(500, new { MessageId = -99, MessageDescription = cartItemResponseModel.MessageDescription });
             }
 
-            if (messageId == -100)
+            if (cartItemResponseModel.MessageId == -100)
             {
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+                return StatusCode(500, new { MessageId = -100, MessageDescription = cartItemResponseModel.MessageDescription });
             }
 
-            return Ok(new
-            {
-                MessageId = messageId,
-                MessageDescription = messageDescription,
-                UpdatedCartItem = updatedCartItem
-            });
+            return Ok(new { MessageId = cartItemResponseModel.MessageId, MessageDescription = cartItemResponseModel.MessageDescription, UpdatedCartItem = cartItemResponseModel.CartItem });
         }
 
         [HttpPost]
         [Route("DeleteCartItem")]
-        public async Task<ActionResult<object>> DeleteCartItem([FromBody] CartItemDetailParamModel cartItemDetailParamModel)
+        public async Task<ActionResult<CartItemResponseModel>> DeleteCartItem([FromBody] CartItemDetailParamModel cartItemDetailParamModel)
         {
-            var (messageId, messageDescription) = await cartItemRepository.DeleteCartItemAsync(cartItemDetailParamModel.ID);
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription });
+            var responseModel = await cartItemRepository.DeleteCartItemAsync(cartItemDetailParamModel.ID);
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription});
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription});
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription });
         }
     }
 }

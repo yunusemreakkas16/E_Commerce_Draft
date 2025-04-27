@@ -1,5 +1,6 @@
 ﻿using E_Commerce_Draft.API.Models.Domain;
 using Microsoft.Data.SqlClient;
+using Microsoft.Identity.Client;
 using System.Data;
 
 namespace E_Commerce_Draft.API.Repositories
@@ -13,9 +14,26 @@ namespace E_Commerce_Draft.API.Repositories
         {
            _connection = new SqlConnection(configuration.GetConnectionString("E_CommerceConnectionString"));
         }
-        public async Task<(int MessageId, string MessageDescription, Category?)> CreateCategoryAsync(Category category)
 
+        private Category MapCategoryResponse(SqlDataReader reader)
         {
+            return new Category
+            {
+                ID = (int)reader["CategoryId"],
+                Name = (string)reader["CategoryName"],
+                isDeleted = (bool)reader["isDeleted"]  
+            };
+        }
+
+
+        public async Task<CategoryResponseModel> CreateCategoryAsync(Category category)
+        {
+            var responseModel = new CategoryResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Category = null
+            };
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_CreateCategory", _connection))
@@ -34,41 +52,44 @@ namespace E_Commerce_Draft.API.Repositories
                     Category? newCategory = null;
 
                     await _connection.OpenAsync();
-                    var result = await command.ExecuteNonQueryAsync();
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (await reader.ReadAsync())
                         {
-                            newCategory = new Category
-                            {
-                                ID = (int)reader["ID"],
-                                Name = (string)reader["Name"]
-                            };
+                            responseModel.Category = MapCategoryResponse(reader);
                         }
                     }
-
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, newCategory);
+                    responseModel.MessageId = (int)messageIdParam.Value;
+                    responseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                responseModel.MessageId = -99;
+                responseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                responseModel.MessageId = -100;
+                responseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return responseModel;
         }
 
-        public async Task<(int MessageId, string MessageDescription, List<Category>)> GetAllCategoriesAsync()
-
+        public async Task<CategoryListResponseModel> GetAllCategoriesAsync()
         {
+            var responseModel = new CategoryListResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Categories = new List<Category>()
+            };
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_GetAllCategories", _connection))
@@ -89,36 +110,40 @@ namespace E_Commerce_Draft.API.Repositories
                     {
                         while (await reader.ReadAsync())
                         {
-                            categories.Add(new Category
-                            {
-                                ID = (int)reader["ID"],
-                                Name = (string)reader["Name"],
-                                isDeleted = (bool)reader["isDeleted"]
-                            });
+                            responseModel.Categories.Add(MapCategoryResponse(reader));
                         }
                     }
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, categories);
+                    responseModel.MessageId = (int)messageIdParam.Value;
+                    responseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }                
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", new List<Category>());
+                responseModel.MessageId = -99;
+                responseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", new List<Category>());
+                responseModel.MessageId = -100;
+                responseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return responseModel;
 
         }
 
-        public async Task<(int MessageId, string MessageDescription, Category?)> GetCategoryByIdAsync(int categoryId)
-
+        public async Task<CategoryResponseModel> GetCategoryByIdAsync(int categoryId)
         {
+            var responseModel = new CategoryResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Category = null
+            };
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_GetCategoryById", _connection))
@@ -138,35 +163,39 @@ namespace E_Commerce_Draft.API.Repositories
                     {
                         if (await reader.ReadAsync())
                         {
-                            category = new Category
-                            {
-                                ID = (int)(reader["Id"]),
-                                Name = (string)reader["Name"],
-                                isDeleted = (bool)reader["isDeleted"]
-                            };
+                            responseModel.Category = MapCategoryResponse(reader);
                         }
                     }
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, category);
+                    responseModel.MessageId = (int)messageIdParam.Value;
+                    responseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                responseModel.MessageId = -99;
+                responseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                responseModel.MessageId = -100;
+                responseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return responseModel;
         }
 
-
-        public async Task<(int MessageId, string MessageDescription, Category?)> UpdateCategoryAsync(Category category)
+        public async Task<CategoryResponseModel> UpdateCategoryAsync(Category category)
         {
+            var responseModel = new CategoryResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Category = null
+            };
             try
             { 
                 using (SqlCommand command = new SqlCommand("usp_UpdateCategory", _connection))
@@ -190,30 +219,29 @@ namespace E_Commerce_Draft.API.Repositories
                     {
                         if (await reader.ReadAsync())
                         {
-                            updatedCategory = new Category
-                            {
-                                ID = (int)reader["ID"],
-                                Name = (string)reader["Name"],
-                                isDeleted = (bool)(reader["isDeleted"])
-                            };
+                            responseModel.Category = MapCategoryResponse(reader);
                         }
                     }
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, updatedCategory);
+                    responseModel.MessageId = (int)messageIdParam.Value;
+                    responseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                responseModel.MessageId = -99;
+                responseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                responseModel.MessageId = -100;
+                responseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return responseModel;
         }
     }
 }

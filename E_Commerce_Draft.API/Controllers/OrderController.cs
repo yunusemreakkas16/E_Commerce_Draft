@@ -19,20 +19,20 @@ namespace E_Commerce_Draft.API.Controllers
 
         [HttpPost]
         [Route("OrderDetail")]
-        public async Task<ActionResult<object>> GetOrderById([FromBody] OrderDetailParamModel orderDetailParamModel)
+        public async Task<ActionResult<OrderResponseModel>> GetOrderById([FromBody] OrderDetailParamModel orderDetailParamModel)
         {
-            var (messageId, messageDescription, order) = await orderRepository.GetOrderByIdAsync(orderDetailParamModel.OrderID);
+            var responseModel = await orderRepository.GetOrderByIdAsync(orderDetailParamModel.OrderID);
 
-            if (messageId == -1)
-                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Order = order });
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Order = responseModel.Order });
         }
 
         [HttpPost]
@@ -57,41 +57,41 @@ namespace E_Commerce_Draft.API.Controllers
 
         [HttpPost]
         [Route("OrderList")]
-        public async Task<ActionResult<object>> GetAllOrders()
+        public async Task<ActionResult<OrderListResponseModel>> GetAllOrders()
         {
-            var (messageId, messageDescription, orders) = await orderRepository.GetAllOrdersAsync();
+            var responseModel = await orderRepository.GetAllOrdersAsync();
 
-            if (messageId == -1)
-                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Orders = orders });
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Orders = responseModel.Orders });
         }
 
         [HttpPost]
         [Route("OrderUpdate")]
-        public async Task<ActionResult<object>> UpdateOrder([FromBody] Order order)
+        public async Task<ActionResult<OrderResponseModel>> UpdateOrder([FromBody] Order order)
         {
             if (order == null || order.ID <= 0 || order.UserID <= 0 || order.TotalPrice <= 0)
                 return BadRequest(new { MessageId = -2, MessageDescription = "Valid order data is required." });
 
-            var (messageId, messageDescription, updatedOrder) = await orderRepository.UpdateOrderAsync(order);
+            var responseModel = await orderRepository.UpdateOrderAsync(order);
 
-            if (messageId == -1)
-                return NotFound(new { MessageId = -1, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -1)
+                return NotFound(new { MessageId = -1, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -99)
-                return StatusCode(500, new { MessageId = -99, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription });
 
-            if (messageId == -100)
-                return StatusCode(500, new { MessageId = -100, MessageDescription = messageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription });
 
-            return Ok(new { MessageId = messageId, MessageDescription = messageDescription, Order = updatedOrder });
+            return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Order = responseModel.Order });
         }
     }
 }

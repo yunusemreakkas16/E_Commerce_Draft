@@ -12,5 +12,18 @@
         {
             public int ID { get; set; }
         }
+        public class UserResponseModel
+        {
+            public int MessageId { get; set; }
+            public string MessageDescription { get; set; } 
+            public User? User { get; set; }
+        }
+        public class UserListResponseModel
+        {
+            public int MessageId { get; set; }
+            public string MessageDescription { get; set; }
+            public List<User>? Users { get; set; }
+        }
+
     }
 }

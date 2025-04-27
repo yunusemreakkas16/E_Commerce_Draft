@@ -17,16 +17,18 @@ namespace E_Commerce_Draft.API.Repositories
         {
             return new Order
             {
-                ID = (int)reader["OrderID"],
-                UserID = (int)reader["UserID"],
-                OrderDate = (DateTime)reader["OrderDate"],
-                TotalPrice = (Decimal)reader["TotalPrice"],
-                isDeleted = (bool)reader["OrderDeleted"],
+                ID = (int)reader["OrderId"],            
+                UserID = (int)reader["UserId"],         
+                OrderDate = (DateTime)reader["OrderDate"], 
+                TotalPrice = (decimal)reader["TotalPrice"], 
+                isDeleted = (bool)reader["OrderDeleted"], 
                 Users = new User
                 {
-                    ID = (int)(reader["UserID"]),
-                    Name = (string)reader["UserName"],
-                    Email = (string)reader["UserEmail"]
+                    ID = (int)reader["UserId"],          
+                    Name = (string)reader["UserName"],   
+                    Email = (string)reader["UserEmail"],
+                    PasswordHash = (string)reader["UserPasswordHash"],
+                    isDeleted = (bool)reader["UserDeleted"]
                 }
             };
         }
@@ -88,9 +90,14 @@ namespace E_Commerce_Draft.API.Repositories
             }
         }
 
-        public async Task<(int MessageId, string MessageDescription, List<Order>?)> GetAllOrdersAsync()
-
+        public async Task<OrderListResponseModel> GetAllOrdersAsync()
         {
+            var orderListResponseModel = new OrderListResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Orders = new List<Order>()
+            };
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_GetAllOrders", _connection))
@@ -103,7 +110,6 @@ namespace E_Commerce_Draft.API.Repositories
 
                     command.Parameters.Add(messageIdParam);
                     command.Parameters.Add(messageDescriptionParam);
-                    List<Order>? orders = new List<Order>();
 
                     await _connection.OpenAsync();
 
@@ -111,33 +117,43 @@ namespace E_Commerce_Draft.API.Repositories
                     {
                         while (await reader.ReadAsync())
                         {
-                            orders.Add(MapOrder(reader));
+                            orderListResponseModel.Orders.Add(MapOrder(reader));
                         }
                     }
-
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, orders);
+                    orderListResponseModel.MessageId = (int)messageIdParam.Value;
+                    orderListResponseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                orderListResponseModel.MessageId = -99;
+                orderListResponseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                orderListResponseModel.MessageId = -100;
+                orderListResponseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
+
             }
+            return orderListResponseModel;
         }
 
-        public async Task<(int MessageId, string MessageDescription, Order?)> GetOrderByIdAsync(int orderId)
+        public async Task<OrderResponseModel> GetOrderByIdAsync(int orderId)
         {
+            var orderResponseModel = new OrderResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Order = null
+            };
             try
             {
-                using(SqlCommand command = new SqlCommand("[usp_GetOrderById]", _connection))
+                using (SqlCommand command = new SqlCommand("[usp_GetOrderById]", _connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
                     command.Parameters.AddWithValue("@OrderID", orderId);
@@ -156,34 +172,42 @@ namespace E_Commerce_Draft.API.Repositories
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        if(await reader.ReadAsync())
+                        if (await reader.ReadAsync())
                         {
-                            order = MapOrder(reader);
+                            orderResponseModel.Order = MapOrder(reader);
                         }
                     }
 
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, order);
+                    orderResponseModel.MessageId = (int)messageIdParam.Value;
+                    orderResponseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                orderResponseModel.MessageId = -99;
+                orderResponseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                orderResponseModel.MessageId = -100;
+                orderResponseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
-
+            return orderResponseModel;
         }
 
-        public async Task<(int MessageId, string MessageDescription, Order?)> UpdateOrderAsync(Order order)
-
+        public async Task<OrderResponseModel> UpdateOrderAsync(Order order)
         {
+            var orderResponseModel = new OrderResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Order = null
+            };
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_UpdateOrder", _connection))
@@ -211,26 +235,29 @@ namespace E_Commerce_Draft.API.Repositories
                     {
                         if (await reader.ReadAsync())
                         {
-                            updatedOrder = MapOrder(reader);
+                            orderResponseModel.Order = MapOrder(reader);
                         }
                     }
-
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, updatedOrder);
+                    orderResponseModel.MessageId = (int)messageIdParam.Value;
+                    orderResponseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                orderResponseModel.MessageId = -99;
+                orderResponseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                orderResponseModel.MessageId = -100;
+                orderResponseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return orderResponseModel;
 
         }
     }

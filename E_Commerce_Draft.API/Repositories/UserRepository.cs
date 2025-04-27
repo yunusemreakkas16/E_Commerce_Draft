@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using System.Reflection.PortableExecutable;
+using static E_Commerce_Draft.API.Models.Domain.User;
 
 namespace E_Commerce_Draft.API.Repositories
 {
@@ -14,9 +15,30 @@ namespace E_Commerce_Draft.API.Repositories
         {
             _connection = new SqlConnection(configuration.GetConnectionString("E_CommerceConnectionString"));
         }
-        public async Task<(int MessageId, string MessageDescription, User?)> CreateUserAsync(User user)
 
+        private User MapUser(SqlDataReader reader)
         {
+            return new User
+            {
+                ID = (int)reader["UserId"],  
+                Name = (string)reader["UserName"],
+                Email = (string)reader["UserEmail"], 
+                PasswordHash = (string)reader["PasswordHash"],
+                isDeleted = (bool)reader["UserDeleted"]
+            };
+        }
+
+
+
+        public async Task<UserResponseModel> CreateUserAsync(User user)
+        {
+            var userResponse = new UserResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                User = null
+            };
+
             try 
             {
                 SqlCommand command = new SqlCommand("usp_CreateUser", _connection);
@@ -39,35 +61,39 @@ namespace E_Commerce_Draft.API.Repositories
                 {
                     if(await reader.ReadAsync())
                     {
-                        User = new User
-                        {
-                            ID = (int)reader["UserID"],
-                            Name = (string)reader["UserName"],
-                            Email = (string)reader["Email"],
-                        };
+                        userResponse.User = MapUser(reader);
                     }
                 }
-                int messageId = (int)messageIdParam.Value;
-                string messageDescription = (string)messageDescriptionParam.Value;
-                return (messageId, messageDescription, User);
+
+                userResponse.MessageId = (int)messageIdParam.Value;
+                userResponse.MessageDescription = (string)messageDescriptionParam.Value;
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                userResponse.MessageId = -99;
+                userResponse.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                userResponse.MessageId = -100;
+                userResponse.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return userResponse;
         }
 
-        public async Task<(int MessageId, string MessageDescription, List<User>)> GetAllUsersAsync()
+        public async Task<UserListResponseModel> GetAllUsersAsync()
         {
+            var userListResponse = new UserListResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                Users = new List<User>()
+            };
             var users = new List<User>();
             try
             {
@@ -87,39 +113,41 @@ namespace E_Commerce_Draft.API.Repositories
                     {
                         while (await reader.ReadAsync())
                         {
-                            users.Add(new User
-                            {
-                                ID = (int)reader["UserID"],
-                                Name = (string)reader["UserName"],
-                                Email = (string)reader["Email"],
-                                isDeleted = (bool)reader["isDeleted"]
-                            });
+                            userListResponse.Users.Add(MapUser(reader));
                         }
                     }
-                    int messageId = (int)messageIdParam.Value;
-                    string messageDescription = (string)messageDescriptionParam.Value;
-                    return (messageId, messageDescription, users);
+                    userListResponse.MessageId = (int)messageIdParam.Value;
+                    userListResponse.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", new List<User>());
+                userListResponse.MessageId = -99;
+                userListResponse.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", new List<User>());
+                userListResponse.MessageId = -100;
+                userListResponse.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return userListResponse;
 
         }
 
-        public async Task<(int MessageId, string MessageDescription, User?)> GetUserByIdAsync(int userId)
-
+        public async Task<UserResponseModel> GetUserByIdAsync(int userId)
         {
+            var userResponse = new UserResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                User = null
+            };
+
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_GetUserById", _connection))
@@ -134,47 +162,45 @@ namespace E_Commerce_Draft.API.Repositories
                     command.Parameters.Add(messageIdParam);
                     command.Parameters.Add(messageDescriptionParam);
 
-                    User? userDetail = null;
-
-
                     await _connection.OpenAsync();
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (await reader.ReadAsync())
                         {
-                            userDetail = new User
-                            {
-                                ID = (int)reader["UserID"],
-                                Name = (string)reader["UserName"],
-                                Email = (string)reader["Email"],
-                                isDeleted = (bool)reader["isDeleted"]
-                            };
+                            userResponse.User = MapUser(reader);
                         }
                     }
-                    int messageId = (int)messageIdParam.Value;
-                    string messageDescription = (string)messageDescriptionParam.Value;
-                    return (messageId, messageDescription, userDetail);
+
+                    userResponse.MessageId = (int)messageIdParam.Value;
+                    userResponse.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
-
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                userResponse.MessageId = -99;
+                userResponse.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                userResponse.MessageId = -100;
+                userResponse.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
-
+            return userResponse;
         }
 
-        public async Task<(int MessageId, string MessageDescription, User?)> UpdateUserAsync(User user)
+        public async Task<UserResponseModel> UpdateUserAsync(User user)
         {
+            var userResponseModel = new UserResponseModel()
+            {
+                MessageId = 0,
+                MessageDescription = string.Empty,
+                User = null
+            };
             try
             {
                 await _connection.OpenAsync();
@@ -199,31 +225,30 @@ namespace E_Commerce_Draft.API.Repositories
                     {
                         if (await reader.ReadAsync())
                         {
-                            updatedUser = new User
-                            {
-                                        ID = (int)(reader["UserID"]),
-                                        Name = (string)reader["UserName"],
-                                        Email = (string)reader["Email"],
-                                        isDeleted = (bool)reader["isDeleted"]
-                            };
+                            userResponseModel.User = MapUser(reader);
                         }
                     }
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, updatedUser);
+                    userResponseModel.MessageId = (int)messageIdParam.Value;
+                    userResponseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
+
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                userResponseModel.MessageId = -99;
+                userResponseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                userResponseModel.MessageId = -100;
+                userResponseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return userResponseModel;
         }
 
     }

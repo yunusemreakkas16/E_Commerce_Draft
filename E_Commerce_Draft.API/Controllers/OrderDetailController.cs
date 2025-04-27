@@ -75,5 +75,25 @@ namespace E_Commerce_Draft.API.Controllers
             return Ok(responseModel);
         }
 
+        [HttpPost]
+        [Route("UpdateOrderDetail")]
+        public async Task<ActionResult<OrderDetailResponseModel>> UpdateOrderDetail([FromBody] UpdateOrderDetailRequestModel updateOrderDetailRequestModel)
+        {
+            if (updateOrderDetailRequestModel == null || updateOrderDetailRequestModel.OrderId <= 0 || updateOrderDetailRequestModel.ProductId <= 0 || updateOrderDetailRequestModel.NewQuantity <= 0)
+                return BadRequest(new { MessageId = -2, MessageDescription = "Valid order detail data is required." });
+            var orderDetail = new OrderDetail
+            {
+                OrderID = updateOrderDetailRequestModel.OrderId,
+                ProductID = updateOrderDetailRequestModel.ProductId,
+                Quantity = updateOrderDetailRequestModel.NewQuantity
+            };
+            var responseModel = await orderDetailsRepository.UpdateOrderDetailAsync(orderDetail);
+            if (responseModel.MessageId == -99)
+                return StatusCode(500, new { MessageId = -99, MessageDescription = responseModel.MessageDescription });
+            if (responseModel.MessageId == -100)
+                return StatusCode(500, new { MessageId = -100, MessageDescription = responseModel.MessageDescription });
+            return Ok(responseModel);
+        }
+
     }
 }

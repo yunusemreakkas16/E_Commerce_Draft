@@ -12,4 +12,18 @@
     {
         public int ID { get; set; }
     }
+
+    public class CategoryResponseModel
+    {
+        public int MessageId { get; set; }
+        public string MessageDescription { get; set; }
+        public Category? Category { get; set; }
+    }
+
+    public class CategoryListResponseModel
+    {
+        public int MessageId { get; set; }
+        public string MessageDescription { get; set; } 
+        public List<Category>? Categories { get; set; } 
+    }
 }

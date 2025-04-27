@@ -2,6 +2,8 @@
 using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Data.Common;
+using static E_Commerce_Draft.API.Models.Domain.CartItem;
+using static E_Commerce_Draft.API.Models.Domain.OrderDetail;
 
 namespace E_Commerce_Draft.API.Repositories
 {
@@ -16,25 +18,38 @@ namespace E_Commerce_Draft.API.Repositories
         {
             return new CartItem
             {
-                ID = (int)(reader["Id"]),
-                UserId = (int)reader["UserId"],
-                ProductId = (int)(reader["ProductId"]),
-                Quantity = (int)(reader["Quantity"]),
+                ID = (int)reader["CartItemId"], // CartItems.ID
+                UserId = (int)reader["UserId"], // CartItems.UserID
+                ProductId = (int)reader["ProductId"], // CartItems.ProductID
+                Quantity = (int)reader["Quantity"], // CartItems.Quantity
                 User = new User
                 {
-                    ID = (int)(reader["UserId"]),
-                    Name = (string)reader["UserName"]
+                    ID = (int)reader["UserId"], // Users.ID
+                    Name = (string)reader["UserName"], // Users.Name
+                    Email = (string)reader["UserEmail"]// Users.Email
                 },
                 Product = new Product
                 {
-                    ID = (int)reader["ProductId"],
-                    Name = (string)reader["ProductName"],
-                    Price = (Decimal)reader["ProductPrice"]
+                    ID = (int)reader["ProductId"], // Products.ID
+                    Name = (string)reader["ProductName"], // Products.Name
+                    Price = (decimal)reader["ProductPrice"], // Products.Price
+                    CategoryId = (int)reader["ProductCategoryId"], // Products.CategoryID
+                    Categories = reader["ProductCategoryName"] == DBNull.Value ? null : new Category
+                    {
+                        Name = (string)reader["ProductCategoryName"]
+                    }
                 }
             };
         }
-        public async Task<(int MessageId, string MessageDescription, CartItem?)> CreateCartItemAsync(CartItem cartItem)
+
+        public async Task<CartItemResponseModel> CreateCartItemAsync(CartItem cartItem)
         {
+            var cartItemCreateResponseModel = new CartItemResponseModel
+            {
+                CartItem = null,
+                MessageId = 0,
+                MessageDescription = string.Empty
+            };
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_CreateCartItem", _connection))
@@ -52,28 +67,29 @@ namespace E_Commerce_Draft.API.Repositories
                     command.Parameters.Add(messageIdParam);
                     command.Parameters.Add(messageDescriptionParam);
 
-                    CartItem? newCartItem = null;
                     await _connection.OpenAsync();
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (await reader.ReadAsync())
                         {
-                            newCartItem = MapCartItem(reader);
+                            cartItemCreateResponseModel.CartItem = MapCartItem(reader);
                         }
-
                     }
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, newCartItem);
+                    cartItemCreateResponseModel.MessageId = (int)messageIdParam.Value;
+                    cartItemCreateResponseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
 
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                cartItemCreateResponseModel.MessageId = -99;
+                cartItemCreateResponseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                cartItemCreateResponseModel.MessageId = -100;
+                cartItemCreateResponseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
@@ -81,10 +97,20 @@ namespace E_Commerce_Draft.API.Repositories
                     await _connection.CloseAsync();
             }
 
+            return cartItemCreateResponseModel;
+
+
         }
 
-        public async Task<(int MessageId, string MessageDescription)> DeleteCartItemAsync(int cartItemId)
+        public async Task<CartItemResponseModel> DeleteCartItemAsync(int cartItemId)
         {
+            var responseModel = new CartItemResponseModel
+            {
+                CartItem = null,
+                MessageId = 0,
+                MessageDescription = string.Empty
+            };
+
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_DeleteCartItem", _connection))
@@ -103,27 +129,39 @@ namespace E_Commerce_Draft.API.Repositories
                     await _connection.OpenAsync();
                     await command.ExecuteNonQueryAsync();
 
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value);
+                    responseModel.MessageId = (int)messageIdParam.Value;
+                    responseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
 
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}"); // SQL hataları için
+                responseModel.MessageId = -99;
+                responseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}"); // Genel hatalar için
+                responseModel.MessageId = -100;
+                responseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
-                    await _connection.CloseAsync(); // Bağlantıyı kapat
+                    await _connection.CloseAsync();
             }
+
+            return responseModel;
         }
 
-        public async Task<(int MessageId, string MessageDescription, List<CartItem>?)> GetAllCartItemsAsync()
+        public async Task<GetAllCartItemsResponseModel> GetAllCartItemsAsync()
         {
+            var getAllCartItemsResponseModel = new GetAllCartItemsResponseModel
+            {
+                CartItems = new List<CartItem>(),
+                MessageId = 0,
+                MessageDescription = string.Empty
+            };
+
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_GetAllCartItems", _connection))
@@ -145,32 +183,42 @@ namespace E_Commerce_Draft.API.Repositories
                     {
                         while (await reader.ReadAsync())
                         {
-                            CartItem cartItem = MapCartItem(reader);
-                            cartItems.Add(cartItem);
+                            getAllCartItemsResponseModel.CartItems.Add(MapCartItem(reader));
                         }
                     }
+                    
+                    getAllCartItemsResponseModel.MessageId = (int)messageIdParam.Value;
+                    getAllCartItemsResponseModel.MessageDescription = (string)messageDescriptionParam.Value;
 
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, cartItems);
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                getAllCartItemsResponseModel.MessageId = -99;
+                getAllCartItemsResponseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                getAllCartItemsResponseModel.MessageId = -100;
+                getAllCartItemsResponseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+
+            return getAllCartItemsResponseModel;
         }
 
-        public async Task<(int MessageId, string MessageDescription, List<CartItem>?)> GetCartItemsByUserIdAsync(int userId)
-
+        public async Task<GetCartItemsByUserIdResponseModel> GetCartItemsByUserIdAsync(int userId)
         {
+            var getCartItemsByUserIdResponseModel = new GetCartItemsByUserIdResponseModel
+            {
+                CartItems = new List<CartItem>(),
+                MessageId = 0,
+                MessageDescription = string.Empty
+            };
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_GetCartItemsByUserId", _connection))
@@ -184,37 +232,44 @@ namespace E_Commerce_Draft.API.Repositories
                     command.Parameters.Add(messageIdParam);
                     command.Parameters.Add(messageDescriptionParam);
 
-                    List<CartItem> cartItems = new List<CartItem>();
                     await _connection.OpenAsync();
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
                         {
-                            CartItem cartItem = MapCartItem(reader);
-                            cartItems.Add(cartItem);
+                            getCartItemsByUserIdResponseModel.CartItems.Add(MapCartItem(reader));
                         }
                     }
-
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, cartItems);
+                    getCartItemsByUserIdResponseModel.MessageId = (int)messageIdParam.Value;
+                    getCartItemsByUserIdResponseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                getCartItemsByUserIdResponseModel.MessageId = -99;
+                getCartItemsByUserIdResponseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                getCartItemsByUserIdResponseModel.MessageId = -100;
+                getCartItemsByUserIdResponseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return getCartItemsByUserIdResponseModel;
         }
 
-        public async Task<(int MessageId, string MessageDescription, CartItem?)> UpdateCartItemAsync(CartItem cartItem)
+        public async Task<CartItemResponseModel> UpdateCartItemAsync(CartItem cartItem)
         {
+            var cartItemResponseModel = new CartItemResponseModel
+            {
+                CartItem = null,
+                MessageId = 0,
+                MessageDescription = string.Empty
+            };
             try
             {
                 using (SqlCommand command = new SqlCommand("usp_UpdateCartItem", _connection))
@@ -236,25 +291,30 @@ namespace E_Commerce_Draft.API.Repositories
                     {
                         if (await reader.ReadAsync())
                         {
-                            updatedCartItem = MapCartItem(reader);
+                            cartItemResponseModel.CartItem = MapCartItem(reader);
                         }
                     }
-                    return ((int)messageIdParam.Value, (string)messageDescriptionParam.Value, updatedCartItem);
+
+                    cartItemResponseModel.MessageId = (int)messageIdParam.Value;
+                    cartItemResponseModel.MessageDescription = (string)messageDescriptionParam.Value;
                 }
             }
             catch (SqlException sqlEx)
             {
-                return (-99, $"Database error: {sqlEx.Message}", null);
+                cartItemResponseModel.MessageId = -99;
+                cartItemResponseModel.MessageDescription = $"Database error: {sqlEx.Message}";
             }
             catch (Exception ex)
             {
-                return (-100, $"Unexpected error: {ex.Message}", null);
+                cartItemResponseModel.MessageId = -100;
+                cartItemResponseModel.MessageDescription = $"Unexpected error: {ex.Message}";
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                     await _connection.CloseAsync();
             }
+            return cartItemResponseModel;
         }
     }
 }

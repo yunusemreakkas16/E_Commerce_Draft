@@ -15,5 +15,27 @@
         {
             public int ID { get; set; }
         }
+
+        public class CartItemResponseModel
+        {
+            public CartItem? CartItem { get; set; } = null;
+            public int MessageId { get; set; } = 0;
+            public string? MessageDescription { get; set; } = null;
+        }
+        public class GetAllCartItemsResponseModel
+        {
+            public int MessageId { get; set; }          
+            public string MessageDescription { get; set; } 
+            public List<CartItem> CartItems { get; set; } 
+        }
+
+        public class GetCartItemsByUserIdResponseModel
+        {
+            public int MessageId { get; set; }
+            public string MessageDescription { get; set; }
+            public List<CartItem> CartItems { get; set; }
+        }
+
+
     }
 }

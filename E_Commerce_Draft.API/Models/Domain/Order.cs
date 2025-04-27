@@ -21,5 +21,11 @@
             public string MessageDescription { get; set; }
             public Order? Order { get; set; }
         }
+        public class OrderListResponseModel
+        {
+            public int MessageId { get; set; }
+            public string MessageDescription { get; set; }
+            public List<Order>? Orders { get; set; }
+        }
     }
 }
