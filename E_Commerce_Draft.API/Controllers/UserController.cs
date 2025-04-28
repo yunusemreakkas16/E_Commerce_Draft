@@ -1,5 +1,6 @@
 ﻿using E_Commerce_Draft.API.Models.Domain;
 using E_Commerce_Draft.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static E_Commerce_Draft.API.Models.Domain.User;
@@ -18,6 +19,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("AddUser")]
         public async Task<ActionResult<UserResponseModel>> CreateUser([FromBody] User user)
         {
@@ -36,6 +38,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("UserDetail")]
         public async Task<ActionResult<UserResponseModel>> GetUserById([FromBody] UserDetailParamModel detailParamModel)
         {
@@ -55,6 +58,7 @@ namespace E_Commerce_Draft.API.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("UserList")]
         public async Task<ActionResult<UserListResponseModel>> GetAllUsers()
         {
@@ -70,6 +74,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("UpdateUser")]
         public async Task<ActionResult<UserResponseModel>> UpdateUser([FromBody] User user)
         {

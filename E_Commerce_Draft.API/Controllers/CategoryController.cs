@@ -1,5 +1,6 @@
 ﻿using E_Commerce_Draft.API.Models.Domain;
 using E_Commerce_Draft.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("CategoryDetail")]
         public async Task<ActionResult<object>> GetCategoryByIdAsync([FromBody]CategoryDetailParamModel categoryDetailParamModel)
         {
@@ -36,6 +38,7 @@ namespace E_Commerce_Draft.API.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("CategoryList")]
         public async Task<ActionResult<object>> CategoryListAsync()
         {
@@ -55,6 +58,7 @@ namespace E_Commerce_Draft.API.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("CreateCategory")]
         public async Task<ActionResult<object>> CreateCategoryAsync([FromBody] Category category)
         {
@@ -73,6 +77,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("CategoryUpdate")]
         public async Task<ActionResult<CategoryResponseModel>> UpdateCategoryAsync([FromBody] Category category)
         {

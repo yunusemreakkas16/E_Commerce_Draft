@@ -1,5 +1,6 @@
 ﻿using E_Commerce_Draft.API.Models.Domain;
 using E_Commerce_Draft.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static E_Commerce_Draft.API.Models.Domain.Order;
@@ -18,6 +19,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("OrderDetail")]
         public async Task<ActionResult<OrderResponseModel>> GetOrderById([FromBody] OrderDetailParamModel orderDetailParamModel)
         {
@@ -36,6 +38,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,User")]
         [Route("OrderCreate")]
         public async Task<ActionResult<OrderResponseModel>> CreateOrderAsync([FromBody] Order order)
         {
@@ -56,6 +59,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("OrderList")]
         public async Task<ActionResult<OrderListResponseModel>> GetAllOrders()
         {
@@ -74,6 +78,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,User")]
         [Route("OrderUpdate")]
         public async Task<ActionResult<OrderResponseModel>> UpdateOrder([FromBody] Order order)
         {

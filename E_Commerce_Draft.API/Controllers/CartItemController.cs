@@ -1,5 +1,6 @@
 ﻿using E_Commerce_Draft.API.Models.Domain;
 using E_Commerce_Draft.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static E_Commerce_Draft.API.Models.Domain.CartItem;
@@ -18,6 +19,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,User")]
         [Route("AddCartItem")]
         public async Task<ActionResult<object>> AddCartItem([FromBody] CartItem cartItem)
         {
@@ -39,6 +41,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("CartItemList")]
         public async Task<ActionResult<GetAllCartItemsResponseModel>> GetAllCartItems()
         {
@@ -56,6 +59,7 @@ namespace E_Commerce_Draft.API.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "Admin,User")]
         [Route("GetCartItemsByUserId")]
         public async Task<ActionResult<GetCartItemsByUserIdResponseModel>> GetCartItemsByUserId([FromBody] CartItemDetailParamModel cartItemDetailParamModel)
         {
@@ -75,6 +79,7 @@ namespace E_Commerce_Draft.API.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = "Admin,User")]
         [Route("UpdateCartItem")]
         public async Task<ActionResult<CartItemResponseModel>> UpdateCartItem([FromBody] CartItem cartItem)
         {
@@ -104,6 +109,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,User")]
         [Route("DeleteCartItem")]
         public async Task<ActionResult<CartItemResponseModel>> DeleteCartItem([FromBody] CartItemDetailParamModel cartItemDetailParamModel)
         {

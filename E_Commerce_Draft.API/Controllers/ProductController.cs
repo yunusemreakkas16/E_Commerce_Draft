@@ -1,5 +1,6 @@
 ﻿using E_Commerce_Draft.API.Models.Domain;
 using E_Commerce_Draft.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static E_Commerce_Draft.API.Models.Domain.Product;
@@ -18,6 +19,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("AddProduct")]
         public async Task<ActionResult<ProductResponseModel>> CreateProductAsync([FromBody] Product product)
         {
@@ -36,6 +38,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,User")]
         [Route("ProductList")]
         public async Task<ActionResult<object>> GetAllProducts()
         {
@@ -54,6 +57,7 @@ namespace E_Commerce_Draft.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,User")]
         [Route("ProductDetail")]
         public async Task<ActionResult<object>> GetProductById([FromBody] ProductDetailParamModel productDetailParamModel)
         {
@@ -71,6 +75,7 @@ namespace E_Commerce_Draft.API.Controllers
             return Ok(new { MessageId = responseModel.MessageId, MessageDescription = responseModel.MessageDescription, Product = responseModel.Product });
         }
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("ProductUpdate")]
         public async Task<ActionResult<object>> UpdateProduct([FromBody] Product product)
         {
