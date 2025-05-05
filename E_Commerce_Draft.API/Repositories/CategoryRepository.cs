@@ -48,9 +48,6 @@ namespace E_Commerce_Draft.API.Repositories
                     command.Parameters.Add(messageIdParam);
                     command.Parameters.Add(messageDescriptionParam);
 
-
-                    Category? newCategory = null;
-
                     await _connection.OpenAsync();
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
